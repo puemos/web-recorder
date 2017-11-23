@@ -1,0 +1,105 @@
+{
+    "name": "mic-recorder",
+    "version": "0.0.2",
+    "description": "Speech to text recognition tool that simplify the API",
+    "keywords": [
+        "speech",
+        "speech-to-text",
+        "text",
+        "recognition",
+        "speech-recognition",
+        "speechRecognition"
+    ],
+    "main": "dist/mic-recorder.umd.js",
+    "module": "dist/mic-recorder.es5.js",
+    "typings": "dist/types/mic-recorder.d.ts",
+    "files": [
+        "dist"
+    ],
+    "author": "Shy <puemos@gmail.com>",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/puemos/mic-recorder.git"
+    },
+    "license": "MIT",
+    "engines": {
+        "node": ">=6.0.0"
+    },
+    "scripts": {
+        "precommit": "lint-staged",
+        "prepush": "npm run test:prod && npm run build",
+        "lint": "tslint -t codeFrame 'src/**/*.ts' 'test/**/*.ts'",
+        "prebuild": "rimraf dist",
+        "build": "tsc && webpack && webpack --env.prod && rimraf compiled && typedoc --out dist/docs --target es6 --theme minimal src",
+        "start": "tsc -w & webpack -w",
+        "test": "jest",
+        "test:watch": "jest --watch",
+        "test:prod": "npm run lint && npm run test -- --coverage --no-cache",
+        "deploy-docs": "ts-node tools/gh-pages-publish",
+        "report-coverage": "cat ./coverage/lcov.info | coveralls"
+    },
+    "lint-staged": {
+        "{src,test}/**/*.ts": [
+            "prettier --write --no-semi --single-quote",
+            "git add"
+        ]
+    },
+    "jest": {
+        "moduleNameMapper": {
+            "worker-loader!./recorder.worker": "<rootDir>/test/__mocks__/workerMock.js"
+          },
+        "setupFiles": [
+            "./test/setup/setup.js"
+        ],
+        "transform": {
+            ".(ts|tsx)": "<rootDir>/node_modules/ts-jest/preprocessor.js"
+        },
+        "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
+        "moduleFileExtensions": [
+            "ts",
+            "tsx",
+            "js"
+        ],
+        "coveragePathIgnorePatterns": [
+            "/node_modules/",
+            "/test/"
+        ],
+        "coverageThreshold": {
+            "global": {
+                "branches": 90,
+                "functions": 95,
+                "lines": 95,
+                "statements": 95
+            }
+        },
+        "collectCoverage": true,
+        "mapCoverage": true
+    },
+    "devDependencies": {
+        "@types/jest": "21.1.6",
+        "@types/node": "8.0.52",
+        "@types/webspeechapi": "0.0.28",
+        "coveralls": "3.0.0",
+        "cross-env": "5.1.1",
+        "husky": "0.14.3",
+        "jest": "21.2.1",
+        "jest-cli": "^21.2.1",
+        "jsdom": "11.3.0",
+        "lint-staged": "5.0.0",
+        "prettier": "1.8.2",
+        "rimraf": "2.6.1",
+        "speech-recognition-mock": "0.0.4",
+        "ts-jest": "21.2.2",
+        "ts-loader": "^3.1.1",
+        "tslint": "5.8.0",
+        "tslint-config-prettier": "1.6.0",
+        "tslint-config-standard": "7.0.0",
+        "typedoc": "0.9.0",
+        "typescript": "2.6.1",
+        "uglifyjs-webpack-plugin": "^1.0.1",
+        "webpack": "^3.8.1",
+        "webpack-config-utils": "^2.3.0",
+        "worker-loader": "^1.1.0"
+    },
+    "dependencies": {}
+}

@@ -1,5 +1,5 @@
 {
-    "name": "mic-recorder",
+    "name": "web-recorder",
     "version": "0.0.2",
     "description": "Speech to text recognition tool that simplify the API",
     "keywords": [
@@ -10,16 +10,16 @@
         "speech-recognition",
         "speechRecognition"
     ],
-    "main": "dist/mic-recorder.umd.js",
-    "module": "dist/mic-recorder.es5.js",
-    "typings": "dist/types/mic-recorder.d.ts",
+    "main": "dist/web-recorder.umd.js",
+    "module": "dist/web-recorder.es5.js",
+    "typings": "dist/types/web-recorder.d.ts",
     "files": [
         "dist"
     ],
     "author": "Shy <puemos@gmail.com>",
     "repository": {
         "type": "git",
-        "url": "https://github.com/puemos/mic-recorder.git"
+        "url": "https://github.com/puemos/web-recorder.git"
     },
     "license": "MIT",
     "engines": {
@@ -78,7 +78,6 @@
     "devDependencies": {
         "@types/jest": "21.1.6",
         "@types/node": "8.0.52",
-        "@types/webspeechapi": "0.0.28",
         "coveralls": "3.0.0",
         "cross-env": "5.1.1",
         "husky": "0.14.3",

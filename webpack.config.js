@@ -7,7 +7,7 @@ const packageJSON = require("./package.json");
 const packageName = normalizePackageName(packageJSON.name);
 const LIB_NAME = pascalCase(packageName);
 const PATHS = {
-  entryPoint: resolve(__dirname, "src/mic-recorder.ts"),
+  entryPoint: resolve(__dirname, "src/web-recorder.ts"),
   umd: resolve(__dirname, "dist")
 };
 

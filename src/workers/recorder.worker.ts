@@ -98,20 +98,20 @@ function exportWAV(type: string) {
   const dataview = encodeWAV(interleaved)
   const audioBlob = new Blob([dataview], { type })
 
-  ctx.postMessage(audioBlob)
+  ctx.postMessage({ command: 'audioBlob', payload: audioBlob })
 }
 
 function exportMonoWAV(type: string) {
   const bufferL = mergeBuffers(recBuffersL, recLength)
   const dataview = encodeWAV(bufferL, true)
   const audioBlob = new Blob([dataview], { type })
-  ctx.postMessage(audioBlob)
+  ctx.postMessage({ command: 'audioBlob', payload: audioBlob })
 }
 function getBuffer() {
   const buffers = []
   buffers.push(mergeBuffers(recBuffersL, recLength))
   buffers.push(mergeBuffers(recBuffersR, recLength))
-  ctx.postMessage(buffers)
+  ctx.postMessage({ command: 'buffers', payload: buffers })
 }
 
 function clear() {

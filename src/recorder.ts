@@ -9,17 +9,13 @@ export class Recorder extends EventTarget {
   private scriptNode: ScriptProcessorNode
   private worker: Worker
 
-  constructor(
-    private source: GainNode,
-    private currCallback: (blob?: any) => any = () => {
-      return
-    }
-  ) {
+  constructor(private source: GainNode) {
     super()
     this.recording = false
     this.bufferLen = 4096
 
     this.onAudioProcess = this.onAudioProcess.bind(this)
+    this.onWorkerMessage = this.onWorkerMessage.bind(this)
   }
   setup() {
     this.worker = this.worker || worker()
@@ -37,10 +33,20 @@ export class Recorder extends EventTarget {
         sampleRate: this.context.sampleRate
       }
     })
+    this.dispatchEvent(new CustomEvent('started'))
   }
+
   onWorkerMessage(ev: MessageEvent) {
-    const blob = ev.data
-    this.currCallback(blob)
+    const { command, payload } = ev.data
+    switch (command) {
+      case 'audioBlob':
+        this.dispatchEvent(new CustomEvent('ended', { detail: payload }))
+        this.stop()
+        break
+
+      default:
+        break
+    }
   }
   onAudioProcess(ev: AudioProcessingEvent): void {
     if (!this.recording) {
@@ -56,16 +62,26 @@ export class Recorder extends EventTarget {
       }
     })
   }
+
   record() {
     this.setup()
     this.recording = true
   }
 
   stop() {
-    this.worker.terminate()
+    this.exportMonoWAV()
+  }
+
+  abort() {
+    this.kill()
+    this.dispatchEvent(new CustomEvent('stopped'))
+  }
+
+  kill() {
     this.recording = false
     this.source.disconnect(this.scriptNode)
     this.scriptNode.disconnect(this.context.destination)
+    this.worker.terminate()
   }
 
   clear() {
@@ -74,21 +90,18 @@ export class Recorder extends EventTarget {
     })
   }
 
-  getBuffer(cb: () => any) {
-    this.currCallback = cb
+  getBuffer() {
     this.worker.postMessage({ command: 'getBuffer' })
   }
 
-  exportWAV(cb: () => any, type: string = 'audio/wav') {
-    this.currCallback = cb
+  exportWAV(type: string = 'audio/wav') {
     this.worker.postMessage({
       command: 'exportWAV',
       payload: { type }
     })
   }
 
-  exportMonoWAV(cb: () => any, type: string) {
-    this.currCallback = cb
+  exportMonoWAV(type: string = 'audio/wav') {
     this.worker.postMessage({
       command: 'exportMonoWAV',
       payload: { type }

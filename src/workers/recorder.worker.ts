@@ -127,10 +127,10 @@ ctx.onmessage = (ev: MessageEvent) => {
       init(payload.sampleRate)
       break
     case 'record':
-      record(ev.data.buffer)
+      record(payload.buffer)
       break
     case 'exportWAV':
-      exportWAV(ev.data.type)
+      exportWAV(payload.type)
       break
     case 'getBuffer':
       getBuffer()

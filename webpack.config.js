@@ -1,19 +1,19 @@
-const { resolve } = require("path");
-const webpack = require("webpack");
-const UglifyJsPlugin = require("uglifyjs-webpack-plugin");
-const { getIfUtils, removeEmpty } = require("webpack-config-utils");
+const { resolve } = require('path')
+const webpack = require('webpack')
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
+const { getIfUtils, removeEmpty } = require('webpack-config-utils')
 
-const packageJSON = require("./package.json");
-const packageName = normalizePackageName(packageJSON.name);
-const LIB_NAME = pascalCase(packageName);
+const packageJSON = require('./package.json')
+const packageName = normalizePackageName(packageJSON.name)
+const LIB_NAME = pascalCase(packageName)
 const PATHS = {
-  entryPoint: resolve(__dirname, "src/web-recorder.ts"),
-  umd: resolve(__dirname, "dist")
-};
+  entryPoint: resolve(__dirname, 'src/index.ts'),
+  umd: resolve(__dirname, 'dist')
+}
 
-const DEFAULT_ENV = "dev";
+const DEFAULT_ENV = 'dev'
 
-const EXTERNALS = {};
+const EXTERNALS = {}
 
 const RULES = {
   ts: {
@@ -21,23 +21,18 @@ const RULES = {
     include: /src/,
     use: [
       {
-        loader: "ts-loader",
+        loader: 'ts-loader',
         options: {
           compilerOptions: {
-            declarationDir: "types"
+            declarationDir: 'types'
           }
         }
       }
     ]
-  },
-  worker: {
-    test: /\.worker\.js$/,
-    include: /src/,
-    use: { loader: "worker-loader" }
   }
-};
+}
 const config = (env = DEFAULT_ENV) => {
-  const { ifProd, ifNotProd } = getIfUtils(env);
+  const { ifProd, ifNotProd } = getIfUtils(env)
   const PLUGINS = removeEmpty([
     // enable scope hoisting
     new webpack.optimize.ModuleConcatenationPlugin(),
@@ -56,9 +51,9 @@ const config = (env = DEFAULT_ENV) => {
       minimize: true
     }),
     new webpack.DefinePlugin({
-      "process.env": { NODE_ENV: ifProd('"production"', '"development"') }
+      'process.env': { NODE_ENV: ifProd('"production"', '"development"') }
     })
-  ]);
+  ])
 
   const UMDConfig = {
     entry: {
@@ -67,51 +62,51 @@ const config = (env = DEFAULT_ENV) => {
 
     output: {
       path: PATHS.umd,
-      filename: "[name].js",
-      libraryTarget: "umd",
+      filename: '[name].js',
+      libraryTarget: 'umd',
       library: LIB_NAME,
 
       umdNamedDefine: true
     },
 
     resolve: {
-      extensions: [".ts", ".js"]
+      extensions: ['.ts', '.js']
     },
 
     externals: EXTERNALS,
 
-    devtool: "source-map",
+    devtool: 'source-map',
     plugins: PLUGINS,
     module: {
-      rules: [RULES.ts, RULES.worker]
+      rules: [RULES.ts]
     }
-  };
+  }
 
-  return [UMDConfig];
-};
+  return [UMDConfig]
+}
 
-module.exports = config;
+module.exports = config
 
 // helpers
 
 function camelCaseToDash(myStr) {
-  return myStr.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
+  return myStr.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
 }
 
 function dashToCamelCase(myStr) {
-  return myStr.replace(/-([a-z])/g, g => g[1].toUpperCase());
+  return myStr.replace(/-([a-z])/g, g => g[1].toUpperCase())
 }
 
 function toUpperCase(myStr) {
-  return `${myStr.charAt(0).toUpperCase()}${myStr.substr(1)}`;
+  return `${myStr.charAt(0).toUpperCase()}${myStr.substr(1)}`
 }
 
 function pascalCase(myStr) {
-  return toUpperCase(dashToCamelCase(myStr));
+  return toUpperCase(dashToCamelCase(myStr))
 }
 
 function normalizePackageName(rawPackageName) {
-  const scopeEnd = rawPackageName.indexOf("/") + 1;
+  const scopeEnd = rawPackageName.indexOf('/') + 1
 
-  return rawPackageName.substring(scopeEnd);
+  return rawPackageName.substring(scopeEnd)
 }

@@ -1,6 +1,8 @@
-const Worker = require('worker-loader!./recorder.worker')
+import { EventTarget } from './EventTarget'
 
-export class Recorder {
+const worker = require('worker-loader?inline=true!./workers/recorder.worker')
+
+export class Recorder extends EventTarget {
   private recording: boolean
   private bufferLen: number
   private context: AudioContext
@@ -13,13 +15,14 @@ export class Recorder {
       return
     }
   ) {
+    super()
     this.recording = false
     this.bufferLen = 4096
 
     this.onAudioProcess = this.onAudioProcess.bind(this)
   }
   setup() {
-    this.worker = this.worker || Worker()
+    this.worker = this.worker || worker()
 
     this.context = this.source.context
     this.scriptNode = this.context.createScriptProcessor(this.bufferLen, 2, 2)

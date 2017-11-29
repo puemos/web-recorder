@@ -19,6 +19,7 @@ export class Recorder extends EventTarget {
   }
   setup() {
     this.worker = this.worker || worker()
+    this.worker.addEventListener('message', this.onWorkerMessage)
 
     this.context = this.source.context
     this.scriptNode = this.context.createScriptProcessor(this.bufferLen, 2, 2)
@@ -26,7 +27,6 @@ export class Recorder extends EventTarget {
     this.scriptNode.connect(this.context.destination)
     this.scriptNode.addEventListener('audioprocess', this.onAudioProcess)
 
-    this.worker.addEventListener('message', this.onWorkerMessage)
     this.worker.postMessage({
       command: 'init',
       payload: {
@@ -39,9 +39,9 @@ export class Recorder extends EventTarget {
   onWorkerMessage(ev: MessageEvent) {
     const { command, payload } = ev.data
     switch (command) {
-      case 'audioBlob':
+      case 'exportWAV':
         this.dispatchEvent(new CustomEvent('ended', { detail: payload }))
-        this.stop()
+        this.kill()
         break
 
       default:
@@ -69,7 +69,7 @@ export class Recorder extends EventTarget {
   }
 
   stop() {
-    this.exportMonoWAV()
+    this.exportWAV()
   }
 
   abort() {

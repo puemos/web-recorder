@@ -1,7 +1,7 @@
 {
     "name": "web-recorder",
     "version": "0.0.2",
-    "description": "Speech to text recognition tool that simplify the API",
+    "description": "Typescript impl of Recorder.js",
     "keywords": [
         "speech",
         "speech-to-text",

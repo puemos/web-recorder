@@ -1,18 +1,18 @@
 {
     "name": "web-recorder",
     "version": "0.0.3",
-    "description": "Typescript impl of Recorder.js",
+    "description": "Browser microphone initialization and recording management written in TypeScript",
     "keywords": [
-        "speech",
-        "speech-to-text",
-        "text",
-        "recognition",
-        "speech-recognition",
-        "speechRecognition"
+        "wav",
+        "record",
+        "audio",
+        "audioapi",
+        "recorder",
+        "worker"
     ],
-    "main": "dist/web-recorder.umd.js",
-    "module": "dist/web-recorder.es5.js",
-    "typings": "dist/types/web-recorder.d.ts",
+    "main": "dist/web-recorder.min.js",
+    "module": "dist/web-recorder.min.js",
+    "typings": "dist/types/index.d.ts",
     "files": [
         "dist"
     ],

@@ -1,6 +1,6 @@
 {
     "name": "web-recorder",
-    "version": "0.0.4",
+    "version": "0.0.5",
     "description": "Browser microphone initialization and recording management written in TypeScript",
     "keywords": [
         "wav",

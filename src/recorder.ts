@@ -1,6 +1,16 @@
 import { EventTarget } from './EventTarget'
 import { IConfig } from './workers/recorder.worker'
 
+export interface IOptionsMaybe {
+  mono?: boolean
+  quietThresholdTime?: number
+  volumeThreshold?: number
+}
+export interface IOptions {
+  mono: boolean
+  quietThresholdTime: number
+  volumeThreshold: number
+}
 declare function require(name: string): any
 
 const worker = require('worker-loader?inline=true!./workers/recorder.worker')
@@ -18,31 +28,30 @@ export class Recorder extends EventTarget {
   private worker: Worker
   private source: MediaStreamAudioSourceNode
   private exportInterval: number
-  private intervalId: number
   private audioTracks: MediaStreamTrack[]
   private analyserData: Float32Array
   private maxVolume: number
   private quietTime: number
+  private options: IOptions
 
-  constructor(private stream: MediaStream, private mono: boolean = false) {
+  constructor(private stream: MediaStream, options: IOptionsMaybe) {
     super()
+
     this.recording = false
     this.ready = false
     this.bufferLen = 4096
+
+    this.options = {
+      mono: options.mono || true,
+      quietThresholdTime: options.quietThresholdTime || 5,
+      volumeThreshold: options.volumeThreshold || -60
+    }
 
     this.onAudioProcess = this.onAudioProcess.bind(this)
     this.onWorkerMessage = this.onWorkerMessage.bind(this)
   }
 
-  start(exportInterval: number = 0) {
-    if (exportInterval > 0) {
-      this.intervalId = setInterval(() => {
-        if (this.ready) {
-          this.exportWAV()
-        }
-      }, exportInterval)
-    }
-
+  start() {
     if (!this.ready) {
       this.setup()
     }
@@ -50,19 +59,13 @@ export class Recorder extends EventTarget {
     this.recording = true
   }
 
-  pause() {
+  stop() {
     this.recording = false
-    if (this.intervalId) {
-      clearInterval(this.intervalId)
-    }
     this.exportWAV()
   }
 
   reset() {
     this.recording = false
-    if (this.intervalId) {
-      clearInterval(this.intervalId)
-    }
     this.worker.postMessage({
       command: 'clear'
     })
@@ -116,7 +119,7 @@ export class Recorder extends EventTarget {
 
     const config: IConfig = {
       sampleRate: audioContext.sampleRate,
-      numChannels: this.mono ? 1 : this.stream.getAudioTracks().length
+      numChannels: this.options.mono ? 1 : this.stream.getAudioTracks().length
     }
 
     this.worker.postMessage({
@@ -135,6 +138,7 @@ export class Recorder extends EventTarget {
     switch (command) {
       case 'exportWAV':
         this.dispatchEvent(new CustomEvent('data', { detail: payload }))
+        this.kill()
         break
 
       default:
@@ -164,19 +168,16 @@ export class Recorder extends EventTarget {
   private isQuiet() {
     const now = audioContext.currentTime
     const delta = now - this.quietTime
-    const isMicQuiet = this.maxVolume < -60 // this.volumeThreshold
+    const isMicQuiet = this.maxVolume < this.options.volumeThreshold
 
-    if (delta > 2 && isMicQuiet) {
-      this.kill()
+    if (delta > this.options.quietThresholdTime && isMicQuiet) {
+      this.stop()
     }
     if (!isMicQuiet) {
       this.quietTime = audioContext.currentTime
     }
   }
   private kill() {
-    if (this.intervalId) {
-      clearInterval(this.intervalId)
-    }
     this.audioTracks.forEach((mediaStreamTrack: MediaStreamTrack) => {
       mediaStreamTrack.stop()
     })
@@ -189,13 +190,6 @@ export class Recorder extends EventTarget {
   private exportWAV(type: string = 'audio/wav') {
     this.worker.postMessage({
       command: 'exportWAV',
-      payload: { type }
-    })
-  }
-
-  private exportMonoWAV(type: string = 'audio/wav') {
-    this.worker.postMessage({
-      command: 'exportMonoWAV',
       payload: { type }
     })
   }

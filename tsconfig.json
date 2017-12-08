@@ -12,7 +12,10 @@
     "declaration": true,
     "declarationDir": "dist/types",
     "outDir": "compiled",
-    "typeRoots": ["node_modules/@types", "./typing"]
+    "typeRoots": [
+      "node_modules/@types/jest",
+      "./typing"
+    ]
   },
   "include": ["./src", "./typing"],
   "exclude": ["node_modules"]

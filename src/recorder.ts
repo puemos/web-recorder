@@ -1,6 +1,8 @@
 import { EventTarget } from './EventTarget'
 import { IConfig } from './workers/recorder.worker'
 
+declare function require(name: string): any
+
 const worker = require('worker-loader?inline=true!./workers/recorder.worker')
 
 const audioContext: AudioContext = new AudioContext()
@@ -14,12 +16,13 @@ export class Recorder extends EventTarget {
   private analyserNode: AnalyserNode
   private gainNode: GainNode
   private worker: Worker
-  private source: GainNode
+  private source: MediaStreamAudioSourceNode
   private exportInterval: number
   private intervalId: number
   private audioTracks: MediaStreamTrack[]
   private analyserData: Float32Array
   private maxVolume: number
+  private quietTime: number
 
   constructor(private stream: MediaStream, private mono: boolean = false) {
     super()
@@ -67,6 +70,7 @@ export class Recorder extends EventTarget {
   }
 
   abort() {
+    this.dispatchEvent(new CustomEvent('stop'))
     this.kill()
   }
 
@@ -90,9 +94,7 @@ export class Recorder extends EventTarget {
       this.onAudioProcess
     )
 
-    const audioInput = audioContext.createMediaStreamSource(this.stream)
-
-    this.source = audioContext.createGain()
+    this.source = audioContext.createMediaStreamSource(this.stream)
 
     this.audioTracks = this.stream.getAudioTracks()
 
@@ -104,8 +106,8 @@ export class Recorder extends EventTarget {
     this.analyserData = new Float32Array(this.analyserNode.frequencyBinCount)
 
     this.gainNode = audioContext.createGain()
+    // no feedback
     this.gainNode.gain.setValueAtTime(0.0, audioContext.currentTime)
-    this.gainNode.connect(audioContext.destination)
     this.gainNode.connect(audioContext.destination)
 
     this.source.connect(this.gainNode)
@@ -123,6 +125,7 @@ export class Recorder extends EventTarget {
     })
 
     this.ready = true
+    this.quietTime = audioContext.currentTime
 
     this.dispatchEvent(new CustomEvent('ready'))
   }
@@ -159,8 +162,16 @@ export class Recorder extends EventTarget {
     this.isQuiet()
   }
   private isQuiet() {
-    const isMicQuiet = this.maxVolume < -75 // this.volumeThreshold
-    console.log(this.maxVolume, isMicQuiet)
+    const now = audioContext.currentTime
+    const delta = now - this.quietTime
+    const isMicQuiet = this.maxVolume < -60 // this.volumeThreshold
+
+    if (delta > 2 && isMicQuiet) {
+      this.kill()
+    }
+    if (!isMicQuiet) {
+      this.quietTime = audioContext.currentTime
+    }
   }
   private kill() {
     if (this.intervalId) {
@@ -172,7 +183,7 @@ export class Recorder extends EventTarget {
     this.source.disconnect(this.scriptProcessorNode)
     this.scriptProcessorNode.disconnect(audioContext.destination)
     this.worker.terminate()
-    this.dispatchEvent(new CustomEvent('stop'))
+    this.dispatchEvent(new CustomEvent('end'))
   }
 
   private exportWAV(type: string = 'audio/wav') {

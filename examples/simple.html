@@ -70,9 +70,9 @@
             var logsElement = document.getElementById('logs')
 
             function logger(event) {
-                console.log(event)
+                var date = new Date()
                 var report = document.createElement('div')
-                report.innerHTML = `${Date.now()} - ${event.type}`
+                report.innerHTML = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} - ${event.type}`
                 logsElement.appendChild(report);
             }
 
@@ -84,7 +84,7 @@
                 audioRecorder.addEventListener('stop', logger)
                 audioRecorder.addEventListener('ready', logger)
                 audioRecorder.addEventListener('reset', logger)
-                audioRecorder.addEventListener('audioprocess', logger)
+                // audioRecorder.addEventListener('audioprocess', logger)
 
                 audioRecorder.addEventListener('data', ev => {
                     var blobUrl = URL.createObjectURL(ev.detail)
@@ -101,7 +101,7 @@
                 }, onGotStream, console.error)
             })
             document.getElementById('start').addEventListener('click', () => {
-                audioRecorder.start()
+                audioRecorder.start(2000)
             })
             document.getElementById('pause').addEventListener('click', () => {
                 audioRecorder.pause();

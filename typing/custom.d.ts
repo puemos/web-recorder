@@ -5,5 +5,3 @@ declare module 'worker-loader!*' {
 
   export = WebpackWorker
 }
-
-declare function require(name: string): any

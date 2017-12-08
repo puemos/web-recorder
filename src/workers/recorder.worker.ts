@@ -1,6 +1,6 @@
 export interface IConfig {
   sampleRate: number
-  // numChannels: number
+  numChannels: number
 }
 
 const ctx: Worker = self as any

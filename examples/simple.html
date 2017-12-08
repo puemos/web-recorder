@@ -70,6 +70,7 @@
             var logsElement = document.getElementById('logs')
 
             function logger(event) {
+                console.log(event)
                 var report = document.createElement('div')
                 report.innerHTML = `${Date.now()} - ${event.type}`
                 logsElement.appendChild(report);
@@ -83,7 +84,7 @@
                 audioRecorder.addEventListener('stop', logger)
                 audioRecorder.addEventListener('ready', logger)
                 audioRecorder.addEventListener('reset', logger)
-                audioRecorder.addEventListener('audioprocessp', logger)
+                audioRecorder.addEventListener('audioprocess', logger)
 
                 audioRecorder.addEventListener('data', ev => {
                     var blobUrl = URL.createObjectURL(ev.detail)

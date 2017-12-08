@@ -1,3 +1,8 @@
+export interface IConfig {
+  sampleRate: number
+  // numChannels: number
+}
+
 const ctx: Worker = self as any
 
 let recLength: number = 0

@@ -115,7 +115,9 @@ export class Recorder extends EventTarget {
   }
 
   private kill() {
-    this.stream.stop()
+    this.stream.getTracks().forEach((mediaStreamTrack: MediaStreamTrack) => {
+      mediaStreamTrack.stop()
+    })
     this.source.disconnect(this.scriptNode)
     this.scriptNode.disconnect(audioContext.destination)
     this.worker.terminate()

@@ -11,9 +11,12 @@ export interface IOptions {
   quietThresholdTime: number
   volumeThreshold: number
 }
+
 declare function require(name: string): any
 
 const worker = require('worker-loader?inline=true!./workers/recorder.worker')
+
+AudioContext = (window as any).webkitAudioContext || AudioContext
 
 const audioContext: AudioContext = new AudioContext()
 
@@ -21,26 +24,29 @@ export class Recorder extends EventTarget {
   private recording: boolean
   private ready: boolean
   private bufferLen: number
-  private context: AudioContext
-  private scriptProcessorNode: ScriptProcessorNode
-  private analyserNode: AnalyserNode
-  private gainNode: GainNode
-  private worker: Worker
-  private source: MediaStreamAudioSourceNode
-  private exportInterval: number
-  private audioTracks: MediaStreamTrack[]
-  private analyserData: Float32Array
-  private maxVolume: number
-  private quietTime: number
   private options: IOptions
+  private quietTime: number
+  private maxVolume: number
+  private worker: Worker
+  private analyserData: Float32Array
+  private scriptProcessorNode?: ScriptProcessorNode
+  private analyserNode?: AnalyserNode
+  private context?: AudioContext
+  private gainNode?: GainNode
+  private source?: MediaStreamAudioSourceNode
+  private exportInterval?: number
+  private audioTracks?: MediaStreamTrack[]
 
-  constructor(private stream: MediaStream, options: IOptionsMaybe) {
+  constructor(private stream: MediaStream, options: IOptionsMaybe = {}) {
     super()
 
     this.recording = false
     this.ready = false
     this.bufferLen = 4096
-
+    this.quietTime = 0
+    this.maxVolume = 99
+    this.worker = worker()
+    this.analyserData = new Float32Array()
     this.options = {
       mono: options.mono || true,
       quietThresholdTime: options.quietThresholdTime || 5,
@@ -83,19 +89,11 @@ export class Recorder extends EventTarget {
 
   private setup() {
     // Init the worker
-    this.worker = this.worker || worker()
     this.worker.addEventListener('message', this.onWorkerMessage)
 
-    this.scriptProcessorNode = audioContext.createScriptProcessor(
-      this.bufferLen,
-      2,
-      2
-    )
+    this.scriptProcessorNode = audioContext.createScriptProcessor(this.bufferLen, 2, 2)
     this.scriptProcessorNode.connect(audioContext.destination)
-    this.scriptProcessorNode.addEventListener(
-      'audioprocess',
-      this.onAudioProcess
-    )
+    this.scriptProcessorNode.addEventListener('audioprocess', this.onAudioProcess)
 
     this.source = audioContext.createMediaStreamSource(this.stream)
 
@@ -149,19 +147,16 @@ export class Recorder extends EventTarget {
     if (!this.recording) {
       return
     }
-    this.dispatchEvent(
-      new CustomEvent('audioprocess', { detail: ev.inputBuffer })
-    )
+    this.dispatchEvent(new CustomEvent('audioprocess', { detail: ev.inputBuffer }))
     this.worker.postMessage({
       command: 'record',
       payload: {
-        buffer: [
-          ev.inputBuffer.getChannelData(0),
-          ev.inputBuffer.getChannelData(1)
-        ]
+        buffer: [ev.inputBuffer.getChannelData(0), ev.inputBuffer.getChannelData(1)]
       }
     })
-    this.analyserNode.getFloatFrequencyData(this.analyserData)
+    if (this.analyserNode) {
+      this.analyserNode.getFloatFrequencyData(this.analyserData)
+    }
     this.maxVolume = Math.max(...Array.from(this.analyserData))
     this.isQuiet()
   }
@@ -178,11 +173,17 @@ export class Recorder extends EventTarget {
     }
   }
   private kill() {
-    this.audioTracks.forEach((mediaStreamTrack: MediaStreamTrack) => {
-      mediaStreamTrack.stop()
-    })
-    this.source.disconnect(this.scriptProcessorNode)
-    this.scriptProcessorNode.disconnect(audioContext.destination)
+    if (this.audioTracks) {
+      this.audioTracks.forEach((mediaStreamTrack: MediaStreamTrack) => {
+        mediaStreamTrack.stop()
+      })
+    }
+    if (this.source && this.scriptProcessorNode) {
+      this.source.disconnect(this.scriptProcessorNode)
+    }
+    if (this.scriptProcessorNode) {
+      this.scriptProcessorNode.disconnect(audioContext.destination)
+    }
     this.worker.terminate()
     this.dispatchEvent(new CustomEvent('end'))
   }

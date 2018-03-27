@@ -99,8 +99,5 @@
         "webpack-cli": "^2.0.12",
         "webpack-config-utils": "^2.3.0",
         "worker-loader": "1.1.1"
-    },
-    "dependencies": {
-        "@types/webaudioapi": "0.0.27"
     }
 }

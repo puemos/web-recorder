@@ -16,9 +16,9 @@ declare function require(name: string): any
 
 const worker = require('worker-loader?inline=true!./workers/recorder.worker')
 
-AudioContext = (window as any).webkitAudioContext || AudioContext
+const AudioContextPolyfill = (window as any).webkitAudioContext || (window as any).AudioContext
 
-const audioContext: AudioContext = new AudioContext()
+const audioContext: AudioContext = new AudioContextPolyfill()
 
 export class Recorder extends EventTarget {
   private recording: boolean

@@ -1,6 +1,6 @@
 {
     "name": "web-recorder",
-    "version": "0.0.11",
+    "version": "0.0.10",
     "description": "Browser microphone initialization and recording management written in TypeScript",
     "keywords": [
         "wav",
@@ -27,7 +27,8 @@
     },
     "scripts": {
         "precommit": "lint-staged",
-        "prepush": "npm run test:prod && npm run build",
+        "prepublish": "npm run build",
+        "prepush": "npm run build",
         "lint": "tslint -t codeFrame 'src/**/*.ts' 'test/**/*.ts'",
         "prebuild": "rimraf dist",
         "build": "tsc && webpack -d && webpack -p --env.prod && rimraf compiled && typedoc --out dist/docs --target es6 --theme minimal src",
@@ -96,8 +97,8 @@
         "typescript": "2.7.2",
         "uglifyjs-webpack-plugin": "1.2.3",
         "webpack": "4.1.1",
-        "webpack-cli": "^2.0.12",
-        "webpack-config-utils": "^2.3.0",
+        "webpack-cli": "2.0.12",
+        "webpack-config-utils": "2.3.0",
         "worker-loader": "1.1.1"
     }
 }

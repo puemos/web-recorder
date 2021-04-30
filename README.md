@@ -1,4 +1,4 @@
-# 🎤 Web recorder written in Typescript 🎤
+# Web recorder (written in Typescript)
 
 [![styled with prettier](https://img.shields.io/badge/styled_with-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
 [![Travis](https://img.shields.io/travis/puemos/web-recorder.svg)](https://travis-ci.org/puemos/web-recorder)
